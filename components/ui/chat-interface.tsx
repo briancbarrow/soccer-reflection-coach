@@ -3,17 +3,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 
-type Message = {
+type DisplayMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
 };
 
 const SimpleChatInterface: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [exchangeCount, setExchangeCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const MAX_EXCHANGES = 5;
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -24,7 +27,7 @@ const SimpleChatInterface: React.FC = () => {
     if (inputValue.trim() === '' || isLoading) return;
 
     // Add user message to chat
-    const userMessage: Message = {
+    const userMessage: DisplayMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: inputValue,
@@ -53,7 +56,7 @@ const SimpleChatInterface: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: messageHistory }),
+        body: JSON.stringify({ messages: messageHistory, exchangeCount: exchangeCount }),
       });
 
       if (!response.ok) {
@@ -71,6 +74,9 @@ const SimpleChatInterface: React.FC = () => {
           content: data.response,
         }
       ]);
+
+      setExchangeCount(prev => prev + 1);
+
     } catch (error) {
       console.error('Error in chat:', error);
       // Add error message
@@ -105,9 +111,9 @@ const SimpleChatInterface: React.FC = () => {
       {/* Messages container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full min-w-xl">
             <p className="text-gray-500 text-center">
-              Start your reflection by sharing how your game went today.
+              Start your reflection by sharing what you felt you did well today.
             </p>
           </div>
         ) : (
