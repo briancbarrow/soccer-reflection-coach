@@ -1,92 +1,92 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Send } from "lucide-react";
 
 type DisplayMessage = {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 };
 
 const SimpleChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [exchangeCount, setExchangeCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const MAX_EXCHANGES = 5;
-
   // Scroll to bottom whenever messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (inputValue.trim() === '' || isLoading) return;
+    if (inputValue.trim() === "" || isLoading) return;
 
     // Add user message to chat
     const userMessage: DisplayMessage = {
       id: Date.now().toString(),
-      role: 'user',
+      role: "user",
       content: inputValue,
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
     setIsLoading(true);
 
     try {
       // Format messages for Claude API
-      const messageHistory = messages.map(msg => ({
+      const messageHistory = messages.map((msg) => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
       }));
 
       // Add current message
       messageHistory.push({
-        role: 'user',
-        content: userMessage.content
+        role: "user",
+        content: userMessage.content,
       });
 
       // Call API
-      const response = await fetch('/api/chat', {
-        method: 'POST',
+      const response = await fetch("/api/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: messageHistory, exchangeCount: exchangeCount }),
+        body: JSON.stringify({
+          messages: messageHistory,
+          exchangeCount: exchangeCount,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        throw new Error("Failed to get response");
       }
 
       const data = await response.json();
 
       // Add assistant response to chat
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
-          role: 'assistant',
+          role: "assistant",
           content: data.response,
-        }
+        },
       ]);
 
-      setExchangeCount(prev => prev + 1);
-
+      setExchangeCount((prev) => prev + 1);
     } catch (error) {
-      console.error('Error in chat:', error);
+      console.error("Error in chat:", error);
       // Add error message
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
-          role: 'assistant',
+          role: "assistant",
           content: "Sorry, I couldn't process your message. Please try again.",
-        }
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -94,7 +94,7 @@ const SimpleChatInterface: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -120,13 +120,14 @@ const SimpleChatInterface: React.FC = () => {
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 ${message.role === 'user'
-                  ? 'bg-blue-500 text-white rounded-br-none'
-                  : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                  }`}
+                className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 ${
+                  message.role === "user"
+                    ? "bg-blue-500 text-white rounded-br-none"
+                    : "bg-gray-200 text-gray-800 rounded-bl-none"
+                }`}
               >
                 <p className="whitespace-pre-wrap">{message.content}</p>
               </div>
@@ -165,7 +166,7 @@ const SimpleChatInterface: React.FC = () => {
           <button
             className="bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSendMessage}
-            disabled={isLoading || inputValue.trim() === ''}
+            disabled={isLoading || inputValue.trim() === ""}
           >
             <Send size={20} />
           </button>

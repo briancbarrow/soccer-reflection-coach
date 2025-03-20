@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 
 type ClaudeMessage = {
-  id: string,
-  role: 'user' | 'assistant';
+  id: string;
+  role: "user" | "assistant";
   content: string;
 };
 
@@ -12,6 +12,8 @@ type RequestBody = {
   exchangeCount: number;
 };
 
+const MAX_EXCHANGES = 3;
+
 export async function POST(request: NextRequest) {
   try {
     const body: RequestBody = await request.json();
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
-        { error: 'Invalid request body - messages array is required' },
+        { error: "Invalid request body - messages array is required" },
         { status: 400 }
       );
     }
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
     If they mention offense, make the questions about the 3 'S's. Shape, Shielding, Space (moving into space to be passed to and draw defenders).
     Keep the follow up questions minimal per message. Only one or two each message.`;
 
-    if (exchangeCount >= 5) {
+    if (exchangeCount >= MAX_EXCHANGES) {
       systemPrompt += `
       IMPORTANT: Do NOT ask any follow-up questions in your response. Instead, provide a thoughtful summary of the discussion and end with an encourging conclusion.
       Offer one or two clear and actionable takeaways the player can apply in their upcoming games and practices
@@ -50,13 +52,14 @@ export async function POST(request: NextRequest) {
       max_tokens: 1000,
     });
 
-    const assistantResponse = response.content[0].type === 'text' ? response.content[0].text : ''
+    const assistantResponse =
+      response.content[0].type === "text" ? response.content[0].text : "";
 
     return NextResponse.json({ response: assistantResponse });
   } catch (error) {
-    console.error('Error calling Claude API:', error);
+    console.error("Error calling Claude API:", error);
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: "Failed to process request" },
       { status: 500 }
     );
   }
